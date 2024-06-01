@@ -5,6 +5,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import scrolledtext
 import base64
 from tkinter import filedialog
 from model.burp_RC4_Salt import *
@@ -14,7 +15,7 @@ from model.LSB_AES_cloacked_pixe import *
 
 
 root = tk.Tk()
-root.wm_iconbitmap("./3.ico")
+root.wm_iconbitmap("3.ico")
 root.title("CTF鲁班锁")
 root.geometry("800x600")
 root.minsize(400, 300)
@@ -25,23 +26,15 @@ keys = []
 def open_dict_f_v2(entry_widget):
     filepath = filedialog.askopenfilename()  # 弹出文件选择对话框
     if filepath:  # 如果用户选择了文件
-        #msg = ''
         try:
             with open(filepath, 'r') as file: 
                 global keys  # 声明使用全局的keys
                 keys = file.read().splitlines()  # 读取文件内容
-                # dict_info.set(f"文件读取成功！字典数量{len(keys)}")
                 msg = f"文件读取成功！字典数量 {len(keys)}"
         except Exception as e:
             msg = (f"读取文件时发生错误：{e}")
         entry_widget.insert(tk.END, msg)
-        """if entry_widget == 'dict_input':
-            dict_input.insert(tk.END, msg)
-        elif entry_widget == 'dict_input2':
-            dict_input2.insert(tk.END, msg)
-        else:
-            raise ValueError(f"无效的 Entry 控件：{entry_widget}")"""
-
+      
 
 
 tabControl = ttk.Notebook(root)
@@ -184,11 +177,13 @@ Dec_text_output.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=5, pady=5)
 MiscFrame = tk.Frame(right_frame)
 MiscFrame.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
 
-DecButMisc = ttk.Button(MiscFrame, text="Base64隐写", command=MiscDecBut_action)
+DecButMisc = ttk.Button(MiscFrame, text="Base64隐写解密", command=MiscDecBut_action)
 DecButMisc.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
 
+"""
 ClsBut = ttk.Button(MiscFrame, text="待定", command=ClsBut_action)
 ClsBut.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
+"""
 
 bit2_output_label = ttk.Label(right_frame, text="隐写解密结果（二进制）:")
 bit2_output_label.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
@@ -460,7 +455,13 @@ img_lsb_Dec_out = tk.Text(img_lsb_f, wrap='word')
 img_lsb_Dec_out.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=8, pady=10)
 
 """
-TODO,添加 执行期间的过程信息
+TODO,添加 执行期间的过程信息。
+
+def add_info_scrolltxtb(entry_widget, info):
+    entry_widget.insert(tk.END, info)
+
+scrolltxtb = scrolledtext.ScrolledText(root, wrap=tk.WORD)
+scrolltxtb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=8)
 """
 
 
