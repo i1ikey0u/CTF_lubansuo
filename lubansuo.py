@@ -16,12 +16,12 @@ from model.LSB_AES_cloacked_pixe import *
 
 root = tk.Tk()
 root.wm_iconbitmap("3.ico")
-root.title("CTF鲁班锁")
+root.title("CTF鲁班锁  https://github.com/i1ikey0u/CTF_lubansuo/")
 root.geometry("800x600")
 root.minsize(400, 300)
 
 
-# 测试  字典信息相关函数合并
+#   字典信息相关函数合并，多标签公用
 keys = []
 def open_dict_f_v2(entry_widget):
     filepath = filedialog.askopenfilename()  # 弹出文件选择对话框
@@ -49,23 +49,26 @@ tabControl.add(tab2, text='RC4(Salt)解密')
 
 # 第三个选项卡
 tab3 = ttk.Frame(tabControl)
-tabControl.add(tab3, text='冰蝎webshell解密')
+tabControl.add(tab3, text='冰蝎Webshell解密')
 
 tab4 = ttk.Frame(tabControl)
 tabControl.add(tab4, text='LSB_(AES)_cloacked-pixel')
 
 
 # tab1 base64 按钮功能实现
-def DecBut_action():
+def Base64_DecBut_action():
     user_input = Enc_input.get('1.0', tk.END).strip()
     Dec_text_output.delete("1.0", tk.END)
     decode = ''
-    if chck_mul_line.get() == 1:
-        for l in user_input.splitlines() :
-           dec = base64.b64decode(l).decode() +'\n'
-           decode += dec
-    else:
-        decode = base64.b64decode(user_input)
+    try:
+        if chck_mul_line.get() == 1:
+            for l in user_input.splitlines() :
+               dec = base64.b64decode(l).decode() +'\n'
+               decode += dec
+        else:
+            decode = base64.b64decode(user_input)
+    except Exception as e:
+        messagebox.showinfo("提示", {e})
     Dec_text_output.insert(tk.END, decode)
 
 def ClsBut_action():
@@ -73,27 +76,32 @@ def ClsBut_action():
     
 def MiscDecBut_action():
     user_input = Enc_input.get('1.0', tk.END).strip()
+    Dec_text_output.delete("1.0", tk.END)
     bit2_text_output.delete("1.0", tk.END)
+    R2toA_output.delete("1.0", tk.END)
     decode = ''
     bin_str = ''
-    for l in user_input.splitlines() :
-        steg_l = l.replace('\n', '')  # 似乎可以优化
-        dec = base64.b64decode(l).decode() +'\n'
-        decode += dec
-        norm_l = base64.b64encode(base64.b64decode(steg_l)).decode()
-        #print(steg_l, norm_l)
-        diff = get_base64_diff_value(steg_l, norm_l)
-        #print(diff)
-        pads_num = steg_l.count('=')
-        if diff:
-            bin_str += bin(diff)[2:].zfill(pads_num * 2)
-        else:
-            bin_str += '0' * pads_num * 2
-    Dec_text_output.insert(tk.END, decode)
-    bit2_text_output.insert(tk.END, bin_str)
-    flag = B2toa(bin_str)
-    R2toA_output.insert(tk.END, flag)
-    messagebox.showinfo('执行完毕！')
+    try:
+        for l in user_input.splitlines() :
+            steg_l = l.replace('\n', '')  # 似乎可以优化
+            dec = base64.b64decode(l).decode() +'\n'
+            decode += dec
+            norm_l = base64.b64encode(base64.b64decode(steg_l)).decode()
+            #print(steg_l, norm_l)
+            diff = get_base64_diff_value(steg_l, norm_l)
+            #print(diff)
+            pads_num = steg_l.count('=')
+            if diff:
+                bin_str += bin(diff)[2:].zfill(pads_num * 2)
+            else:
+                bin_str += '0' * pads_num * 2
+        Dec_text_output.insert(tk.END, decode)
+        bit2_text_output.insert(tk.END, bin_str)
+        flag = B2toa(bin_str)
+        R2toA_output.insert(tk.END, flag)
+    except Exception as e:
+        messagebox.showinfo("提示", {e})
+    messagebox.showinfo('提示', '执行完毕！')
 
 def get_base64_diff_value(s1, s2):
     base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -150,22 +158,29 @@ DecFrame = tk.Frame(right_frame)
 DecFrame.pack(side=tk.TOP, fill=tk.X, padx=8, pady=5)
 
 # 复选框(暂时无作用，仅作调试使用)
+"""
 def on_checkbox_change():
-    """当复选框状态改变时调用的回调函数"""
+    #当复选框状态改变时调用的回调函数
+    return
     if chck_mul_line.get() == 1:
         print("复选框被选中")
     else:
         print("复选框未被选中")
+"""
 
-chck_mul_line = tk.IntVar()
-chck_mul_line_btn = ttk.Checkbutton(DecFrame, text="按行解码", variable=chck_mul_line, command=on_checkbox_change)
-chck_mul_line_btn.pack(side=tk.LEFT, expand=1, padx=5, pady=5)  # 使用pack布局管理器添加复选框到窗口
+
+chck_mul_line = tk.IntVar()  # 设定全局变量，无需 command=on_checkbox_change
+chck_mul_line_btn = ttk.Checkbutton(DecFrame, text="按行解码", variable=chck_mul_line)
+chck_mul_line_btn.pack(side=tk.LEFT, expand=1, padx=5, pady=5)  
 
 
 # 常规解码（TODO：末尾等号异常的处理）
-DecBut = ttk.Button(DecFrame, text="尝试解码", command=DecBut_action)
+DecBut = ttk.Button(DecFrame, text="Base64解码", command=Base64_DecBut_action)
 DecBut.pack(side=tk.LEFT, expand=1, padx=5, pady=5)
 
+
+DecButMisc = ttk.Button(DecFrame, text="Base64隐写解密", command=MiscDecBut_action)
+DecButMisc.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
 
 # 结果展示
 Dec_output_label = ttk.Label(right_frame, text="解码结果:")
@@ -173,12 +188,6 @@ Dec_output_label.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
 Dec_text_output = tk.Text(right_frame, wrap='word', height=10)
 Dec_text_output.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-# 第二块隐写
-MiscFrame = tk.Frame(right_frame)
-MiscFrame.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
-
-DecButMisc = ttk.Button(MiscFrame, text="Base64隐写解密", command=MiscDecBut_action)
-DecButMisc.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
 
 """
 ClsBut = ttk.Button(MiscFrame, text="待定", command=ClsBut_action)
@@ -290,6 +299,7 @@ chck_alp = ttk.Checkbutton(RC4_R_Frame2, text="字母", variable=chck_mul_line, 
 chck_alp.pack(side=tk.LEFT, padx=5, pady=5)  # 使用pack布局管理器添加复选框到窗口
 """
 
+#  冰蝎流量解密
 tab3.grid_columnconfigure(0, weight=1) # 权重为1，使其自动扩展。
 tab3.grid_columnconfigure(1, weight=0)  # 分割线所在列，权重为0，不让其扩展。
 tab3.grid_columnconfigure(2, weight=1) # 权重为1，使其自动扩展。
@@ -325,31 +335,89 @@ Behinder_Enc_input.bind("<Button-1>", clear_default3)
 # 后续考虑是不是要合并
 def Behinder_dec():
     cipher = Behinder_Enc_input.get('1.0', tk.END).strip()
-    if keys:
-        rst = crack_mutl_thread2(cipher, keys)
+    rst = ''
+    grep = behinder_grep_entry.get()
+    # preg = 'status' if preg =='' else preg # 设置默认值
+    print(behingder_model_opt.get())
+    if behingder_model_opt.get() == opts[0]:
+        if keys:
+           rst = crack_mutl_thread2(cipher, keys)
+    else:
+        messagebox.showinfo("提示", "正在开发中……")
     Behinder_Dec_input.delete("1.0", tk.END)
     Behinder_Dec_input.insert(tk.END, rst)
     messagebox.showinfo("提示", "解密完毕！")
 
 
 # 冰蝎解密 右侧布局
+
+# 冰蝎加密模式选择
+behinder_model_frame = ttk.Frame(right_frame3)
+behinder_model_frame.grid(row=0, sticky="nsew")
+
+
+behingder_model_l = tk.Label(behinder_model_frame, text="选择加密模式：")
+behingder_model_l.pack(side=tk.LEFT, anchor=tk.NW,  padx=5, pady=5)
+opts = ["AES加密模式", "XOR模式(暂未实现)", "XOR_BASE64(暂未实现)", "AES&Imagic(暂未实现)"]
+behingder_model_opt = tk.StringVar() # 设置一个变量，结合textvariable指定，直接全局使用
+behingder_model_cbx = ttk.Combobox(behinder_model_frame, values=opts,  textvariable=behingder_model_opt,  state='readonly') # 设置state，不可修改
+behingder_model_cbx.pack(side=tk.TOP,  fill = tk.X, anchor=tk.NW,  padx=5, pady=10) 
+behingder_model_cbx.set(opts[0])  # 可选：设置默认值
+
+# 测试函数,一般用于选择后的相关初始化
+"""
+behingder_model_cbx.bind("<<ComboboxSelected>>", behingder_model_opt_slectd)
+def behingder_model_opt_slectd(event):
+    behingder_model_opt = behingder_model_opt.get()
+    print(f"你选择了: {behingder_model_opt}")
+
+# optionMeua 空间模式，样式不太直观
+behingder_model_opt.set(options[0])  # 设置默认值
+behingder_model_optM = tk.OptionMenu(behinder_model_frame, behingder_model_opt, *options, command=behingder_model_opt_slectd)  
+behingder_model_optM.pack(side=tk.LEFT,  fill = tk.X, anchor=tk.NW,  padx=5, pady=5) 
+"""
+
+
+
+# 字典设置
+behinder_dict_frame = ttk.Frame(right_frame3)
+behinder_dict_frame.grid(row=1, sticky="nsew")
+
 get_dict_f2 = tk.StringVar()
-get_dict_f2 = ttk.Button(right_frame3, text="选择字典",  command=lambda: open_dict_f_v2( dict_input2 ))
-get_dict_f2.pack(side=tk.TOP,  anchor=tk.NW, padx=5, pady=5)  
+get_dict_f2 = ttk.Button(behinder_dict_frame, text="选择字典",  command=lambda: open_dict_f_v2( dict_input2 ))
+get_dict_f2.pack(side=tk.LEFT,  anchor=tk.NW, padx=5, pady=5)  
 
 # 字典选择信息
-dict_input2 = tk.Entry(right_frame3)
+dict_input2 = tk.Entry(behinder_dict_frame)
 dict_input2.pack(side=tk.TOP, fill = tk.X, anchor=tk.NW,  padx=8, pady=10)
 
-burp_Behinder = ttk.Button(right_frame3, text="解密",  command=lambda: Behinder_dec())
-burp_Behinder.pack(side=tk.TOP, anchor=tk.NW,  padx=5, pady=5)  
 
-behinder_rst_l = tk.Label(right_frame3, text="解密结果：")
+# TODO  关键字匹配
+behinder_grep_frame = ttk.Frame(right_frame3)
+behinder_grep_frame.grid(row=3, sticky="nsew")
+
+behinder_grep_l = tk.Label(behinder_grep_frame, text="可能的关键字：")
+behinder_grep_l.pack(side=tk.LEFT, anchor=tk.NW,  padx=5, pady=5)
+
+behinder_grep_entry = tk.Entry(behinder_grep_frame)
+behinder_grep_entry.pack(side=tk.LEFT, anchor=tk.NW,  padx=5, pady=5)
+behinder_grep_entry.insert(0, "status")
+
+burp_Behinder_btn = ttk.Button(behinder_grep_frame, text="尝试解密",  command=lambda: Behinder_dec())
+burp_Behinder_btn.pack(side=tk.LEFT, anchor=tk.NW,  padx=5, pady=5)  
+
+
+# 结果展示
+behinder_dec_frame = ttk.Frame(right_frame3)
+behinder_dec_frame.grid(row=4, sticky="nsew")
+
+behinder_rst_l = tk.Label(behinder_dec_frame, text="解密结果：")
 behinder_rst_l.pack(side=tk.TOP, anchor=tk.NW,  padx=8, pady=10)
 
-Behinder_Dec_input = tk.Text(right_frame3, wrap='word',)
-Behinder_Dec_input.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=8, pady=10)
+Behinder_Dec_input = tk.Text(behinder_dec_frame, wrap='word',)
+Behinder_Dec_input.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=5, pady=10)
 #  end
+
 
 # LSB AES 隐写 cloacked-pixel模式
 
@@ -438,7 +506,7 @@ img_lsb_crack_btn = ttk.Button(pass_frame, text="字典爆破/密码",  command=
 img_lsb_crack_btn.pack(side=tk.LEFT, anchor=tk.NW,  padx=5, pady=5)  
 
 img_pass_entry = tk.Entry(pass_frame)
-img_pass_entry.pack(side=tk.LEFT,  anchor=tk.NW,  padx=8, pady=10)
+img_pass_entry.pack(side=tk.LEFT,  anchor=tk.NW,  padx=5, pady=5)
 
 img_lsb_btn = ttk.Button(pass_frame, text="提取LSB数据",  command=lambda: img_lsb_dec() )
 img_lsb_btn.pack(side=tk.LEFT, anchor=tk.NW,  padx=5, pady=5)  
@@ -449,13 +517,13 @@ img_lsb_f = ttk.Frame(tab4)
 img_lsb_f.grid(row=3, sticky="nsew")
 
 img_lsb_l = tk.Label(img_lsb_f, text="提取结果：")
-img_lsb_l.pack(side=tk.LEFT, anchor=tk.NW,  padx=8, pady=10)
+img_lsb_l.pack(side=tk.TOP, anchor=tk.NW,  padx=5, pady=5)
 
 img_lsb_Dec_out = tk.Text(img_lsb_f, wrap='word')
-img_lsb_Dec_out.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=8, pady=10)
+img_lsb_Dec_out.pack(side=tk.TOP, fill=tk.Y, expand=True, padx=5, pady=10)
 
 """
-TODO,添加 执行期间的过程信息。
+TODO,添加 执行期间的过程信息，打算输出到本地日志，方便大家提交Issus
 
 def add_info_scrolltxtb(entry_widget, info):
     entry_widget.insert(tk.END, info)
@@ -464,5 +532,30 @@ scrolltxtb = scrolledtext.ScrolledText(root, wrap=tk.WORD)
 scrolltxtb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=8)
 """
 
+class RedirectedStdout:
+    def __init__(self, filename):
+        self.filename = filename
+        self.file = open(filename, 'w')
 
-root.mainloop()
+    def write(self, output):
+        self.file.write(output)
+        self.file.flush()  # 确保立即写入磁盘
+
+    def __del__(self):
+        self.file.close()
+
+def logs(msg):
+    logf = 'logs.txt'
+    with open(logf, 'a+') as f:
+        f.writelines(msg)
+        
+
+def main():
+    global stdout_backup
+    stdout_backup = sys.stdout  # 保存原始stdout
+    sys.stdout = RedirectedStdout('logs.txt')  # 重定向stdout到文件
+    root.mainloop()
+    sys.stdout = stdout_backup # 在程序结束前恢复原来的stdout
+       
+if __name__ == "__main__":
+    main()
