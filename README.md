@@ -11,5 +11,12 @@ CTF鲁班锁
 触发反病毒程序的提示
 因为打包的exe使用了去除CMD控制台的参数，可能会提示存在病毒，可以直接运行脚本  py -3 lubansuo.py
 
+## 当前进展
+初步完成了冰蝎加密流量的解密工作
+正在全力开发哥斯拉Godzilla使用的Webshell流量的解密，已对PHP版本的2个主流webshell加密流量完成解密
+最最主要是，**支持从给定的流量中提取websshell连接密码， 爆破解密流量需要的 key**
+jsp版本的具备初步功能
+
 ## TODO
-增加冰蝎Webshell使用的其他加密/编码流量的解密
+完成哥斯拉Godzilla使用的剩余其他Webshell流量的解密
+后续完善冰蝎webshell加密流量的解密工作
