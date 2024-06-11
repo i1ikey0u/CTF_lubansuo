@@ -600,7 +600,9 @@ def gzl_model_opt_sltd(event):
     gzl_key_hash_entry.config(state="normal")
     gzl_rqst_btn.config(state="normal")
     gzl_rsp_btn.config(state="normal")
-    if model in (gzl_opts[1], gzl_opts[4], gzl_opts[7], gzl_opts[8], gzl_opts[9], gzl_opts[12]) :
+    if model == gzl_opts[0]:
+         messagebox.showinfo("JSP_AES_BASE64 模式", "请先输入连接密码和key，或者1.粘贴请求包，获取连接密码，2.再粘贴响应包，爆破key，3.解密")
+    elif model in (gzl_opts[1], gzl_opts[4], gzl_opts[7], gzl_opts[8], gzl_opts[9], gzl_opts[12]) :
         print('RAW 模式 合集')
         gzl_get_dict_btn.config(state="disabled")
         gzl_dict_input.config(state="disabled")
@@ -617,7 +619,7 @@ def gzl_model_opt_sltd(event):
         print('PHP_EVAL _XOR_BASE64 模式')
         messagebox.showinfo(f'PHP_EVAL _XOR_BASE64 模式', '请输入访问webshell的第2个POST请求包内容。一般内容如下：\n **passwd**=eval%28base64_decode%28strrev%28urldecode(…… \n **key**=DlMRWA1cL1gOVDc2MjRhRwZFEQ%3D%3D')
     elif model == gzl_opts[3]:
-        messagebox.showinfo("PHP_XOR_BASE64 模式", "请先输入连接密码和key，或者粘贴请求包，获取连接密码，再输入响应包，爆破key。方可进行解密 \n POST请求包内容，一般内容为：**pass**=R0YEQgNVBE…… ")
+        messagebox.showinfo("PHP_XOR_BASE64 模式", "请先输入连接密码和key，或者1.粘贴请求包，获取连接密码，2.再粘贴响应包，爆破key，3.解密 \n POST请求包内容，一般内容为：**pass**=R0YEQgNVBE…… ")
        
     else:
         gzl_get_dict_btn.config(state="normal")
@@ -719,6 +721,9 @@ def gzl_burp_skey_hash():
     skeyhash = ''
     cipher = gzl_Enc_input.get('1.0', tk.END).strip()
     conn_pass = gzl_wspass_entry.get()
+    if not keys:
+        messagebox.showinfo('提示', '未设置字典文件')
+        return
     if conn_pass == '':
         messagebox.showinfo('提示', '请填写或通过请求包读取连接密码')
         return
@@ -754,11 +759,17 @@ def gzl_dec(num):
         if model == gzl_opts[0]:
             print('JSP_AES_BASE64 请求解密')
             if key == '':
-                tmp = gzl_php_xor_base64_burpkey(cipher, conn_pass, keys)
-                key = tmp[0]
-                k_hash = tmp[1]
-            #rqst1_jsp_aes_base64_dec(rqst1_java_aes_base64, key)   # TODO：暂未兼容请求1
-            rst = rqst_jsp_aes_base64(rqst2_java_aes_base64, key)
+                messagebox.showinfo("提示", "请计算/爆破key和k_hash")
+                return
+            #rqst1_jsp_aes_base64_dec(cipher, key)   # TODO：暂未兼容请求1
+            rst = rqst_jsp_aes_base64(cipher, key)
+            rst = repr(rst)
+            print( rst[:4] )
+            print( bytes.fromhex('cafebabe') )
+            if rst[:4] == bytes.fromhex('cafebabe'):
+                with open('./rqst1.class', 'wb') as cf:     
+                    cf.write(rst)
+                rst = '解密完成，请查看当前目录下的 rqst1.class 文件（每次解密均会进行覆盖），可以使用jadx工具反编译'
         elif model == gzl_opts[1] :
             print('1 raw，已在模式选择屏蔽') 
         elif model == gzl_opts[2]:
@@ -797,11 +808,13 @@ def gzl_dec(num):
         if not skey_hash:
             messagebox.showinfo('提示', '请先爆破/计算SecretKey_hash，或通过请求包获取相关值')
             return
-        if model in [gzl_opts[0], gzl_opts[1] ]:
-            print('JSP_AES 模式')
+        if model == gzl_opts[0]:
+            print('JSP_AES_BASE64 响应包解密')
+            rst = rsp_jsp_aes_base64_dec(cipher, key)
+            print(rst)
         elif model == gzl_opts[1] :
-            print('1')
-            print(skey_hash)
+            print('JSP_AES_RAW 响应包解密(暂未实现)')
+            # print(skey_hash)
         elif model == gzl_opts[2]:
             print('PHP_EVAL_XOR_BASE64 响应包解密')
             rsp_data = rsp_php_eval_xor_base64(cipher, skey_hash, conn_pass)
@@ -829,9 +842,9 @@ def gzl_dec(num):
         messagebox.showinfo("提示", "未选择字典文件")
         return
     """
-    print(f'最终结果是：{rst}')
+    print(f'最终结果是：{rst }')
     gzl_Dec_input.delete("1.0", tk.END)
-    gzl_Dec_input.insert(tk.END, str(rst))
+    gzl_Dec_input.insert(tk.END, str(rst) )  # 使用repr强制转换
     messagebox.showinfo("提示", "解密完毕！")
 
 
