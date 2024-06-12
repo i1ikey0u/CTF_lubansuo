@@ -338,14 +338,17 @@ def Behinder_dec():
         return
     rst = ''
     grep = behinder_grep_entry.get()
+    #key = 
     model = behingder_model_opt.get()
     # preg = 'status' if preg =='' else preg # 设置默认值
     print(behingder_model_opt.get())
-    if model == opts[0]:
+    if model == opts[0]:  # 破解key，并同步返回解密内容
         if keys:
            rst = crack_mutl_thread2(cipher, keys, grep)
+           messagebox.showinfo("提示", "密码爆破完毕，请查看结果")
         else:
             messagebox.showinfo("提示", "未选择字典文件")
+            return
     elif model == opts[1]:
         key_h = bh_xor_check_key(cipher)
         key_a = bytes.fromhex(key_h)
@@ -386,7 +389,8 @@ behinder_model_frame.grid(row=0, sticky="nsew")
 
 behingder_model_l = tk.Label(behinder_model_frame, text="选择加密模式：")
 behingder_model_l.pack(side=tk.LEFT, anchor=tk.NW,  padx=5, pady=5)
-opts = ["AES加密模式", "XOR模式", "XOR_BASE64", "AES&Imagic(暂未实现)"]
+# 当前仅针对PHP环境的
+opts = ["AES 模式", "XOR 模式", "XOR_BASE64 模式", "AES & magic 模式(暂未实现)", "image 模式(暂未实现)", "JSON 模式(暂未实现)"]
 behingder_model_opt = tk.StringVar() # 设置一个变量，结合textvariable指定，直接全局使用
 behingder_model_cbx = ttk.Combobox(behinder_model_frame, values=opts,  textvariable=behingder_model_opt,  state='readonly') # 设置state，不可修改
 behingder_model_cbx.pack(side=tk.TOP,  fill = tk.X, anchor=tk.NW,  padx=5, pady=10) 
@@ -672,7 +676,7 @@ def gzl_example_data(num):
         #  响应包，不删除 链接密码
         if model == gzl_opts[0]:
             print('JSP_AES_BASE64 响应包')
-            gzl_Enc_input.insert(tk.END, rsp_java_aes_base64)
+            gzl_Enc_input.insert(tk.END, rsp2_java_aes_base64)
         elif model  == gzl_opts[1]:
             print('JSP_AES_RAW 相应包（暂未实现）') 
         elif model  == gzl_opts[2]:
@@ -751,7 +755,7 @@ def gzl_dec(num):
     
     # 请求包模式
     if num == 1:
-        print('请求包测试')
+        print('进入请求包测试')
         # 获取连接密码  见初始化
         # 获取key 
         # 获取key_hash 见初始化
@@ -761,15 +765,14 @@ def gzl_dec(num):
             if key == '':
                 messagebox.showinfo("提示", "请计算/爆破key和k_hash")
                 return
-            #rqst1_jsp_aes_base64_dec(cipher, key)   # TODO：暂未兼容请求1
             rst = rqst_jsp_aes_base64(cipher, key)
-            rst = repr(rst)
-            print( rst[:4] )
-            print( bytes.fromhex('cafebabe') )
-            if rst[:4] == bytes.fromhex('cafebabe'):
+            # print( 'rst:4', rst[:4] )
+            if rst[:4] == bytes.fromhex('cafebabe'):  # 已完成兼容请求1的情况
                 with open('./rqst1.class', 'wb') as cf:     
                     cf.write(rst)
                 rst = '解密完成，请查看当前目录下的 rqst1.class 文件（每次解密均会进行覆盖），可以使用jadx工具反编译'
+            else:
+                rst = repr(rst) # 兼容反序列化后的不可打印字符
         elif model == gzl_opts[1] :
             print('1 raw，已在模式选择屏蔽') 
         elif model == gzl_opts[2]:
@@ -801,7 +804,7 @@ def gzl_dec(num):
         else:
             messagebox.showinfo("提示", "正在开发中……")
     elif num == 2:
-        print('响应包测试')
+        print('进入响应包测试')
         if conn_pass == '':
             messagebox.showinfo('提示', '请先输入webshell的连接密码，或从请求包中提取')
             return
